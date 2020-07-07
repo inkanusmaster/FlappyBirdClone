@@ -9,6 +9,8 @@ public class FlappyBird extends ApplicationAdapter {
     SpriteBatch batch; //SpriteBatch to taki handler do zarządzania animacjami
     Texture background; //Texture to obrazy.
     Texture[] birds; //Tablica tekstur bird, bo on macha skrzydłami
+    Texture topTube; //Rura górna
+    Texture bottomTube; //Rura dolna
     int flapState = 0; //Sprawdzanie stanu machania skrzydłami. To indeks tablicy naszych birds
     int pause = 0; //Pauza do spowolnienia machania
     float birdY = 0; //Pozycja ptaka. Jego Y będzie się zmieniał bo będzie latał góra/dół
@@ -16,10 +18,13 @@ public class FlappyBird extends ApplicationAdapter {
     int gameState = 0; //Stan gry. Na początku 0, żeby po uruchomieniu ptak był na środku i dopiero po tapnięciu zaczął się ruszać.
     float gravity = 2; //Dodatkowa zmienna zwiększająca szybkość grawitacji
 
+
     @Override
     public void create() { //taka metoda oncreate jakby
         batch = new SpriteBatch();
         background = new Texture("bg.png");
+        topTube = new Texture("toptube.png");
+        bottomTube = new Texture("bottomtube.png");
 
         birds = new Texture[2]; //tablica tekstur z ptakiem bo on macha skrzydłami (bird i bird2 więc tablica 2 elementów)
         birds[0] = new Texture("bird.png");
@@ -32,10 +37,9 @@ public class FlappyBird extends ApplicationAdapter {
     public void render() { //tutaj wkółko leci ta metoda i w tej metodzie gra się wykonuje
 
 
-        //Sprawdzamy stan gry. Na początku jest 0, ptak się nie rusza. Dopiero po kliknięciu w ekran jest 1;
-        if (gameState != 0) {
-            //Interakcja, czyli jak dotkniemy ekran to ten dziad ptak leci do góry, a jak nie to spada
-            if (Gdx.input.justTouched()) {
+        if (gameState != 0) { //Sprawdzamy stan gry. Na początku jest 0, ptak się nie rusza. Dopiero po kliknięciu w ekran jest 1;
+            if (Gdx.input.justTouched()) {  //Interakcja, czyli jak dotkniemy ekran to ten dziad ptak leci do góry, a jak nie to spada
+
 //            Gdx.app.log("TOUCHED!", "YES!!"); // tak się loguje w libgdx
                 velocity = -30;
             }
