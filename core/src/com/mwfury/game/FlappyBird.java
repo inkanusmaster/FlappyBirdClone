@@ -17,7 +17,7 @@ public class FlappyBird extends ApplicationAdapter {
     float velocity = 0; //Prędkość ptaka przy lataniu góra/dół
     int gameState = 0; //Stan gry. Na początku 0, żeby po uruchomieniu ptak był na środku i dopiero po tapnięciu zaczął się ruszać.
     float gravity = 2; //Dodatkowa zmienna zwiększająca szybkość grawitacji
-
+    float gap = 400; //Odległość między rurami
 
     @Override
     public void create() { //taka metoda oncreate jakby
@@ -36,10 +36,15 @@ public class FlappyBird extends ApplicationAdapter {
     @Override
     public void render() { //tutaj wkółko leci ta metoda i w tej metodzie gra się wykonuje
 
+        //rozpoczynamy rysowanie batcha
+        batch.begin();
+        batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()); // tło. Musi być tutaj bo potem są rury rysowane
 
         if (gameState != 0) { //Sprawdzamy stan gry. Na początku jest 0, ptak się nie rusza. Dopiero po kliknięciu w ekran jest 1;
-            if (Gdx.input.justTouched()) {  //Interakcja, czyli jak dotkniemy ekran to ten dziad ptak leci do góry, a jak nie to spada
+            batch.draw(topTube, Gdx.graphics.getWidth() / 2 - topTube.getWidth() / 2, Gdx.graphics.getHeight() / 2 + gap / 2);//Rysujemy rury. Na parametrze Y będziemy dawali przerwę gap.
+            batch.draw(bottomTube, Gdx.graphics.getWidth() / 2 - bottomTube.getWidth() / 2, Gdx.graphics.getHeight() / 2 - gap / 2 - bottomTube.getHeight());//Ogarnięte. Nie trudne. Dolna rura.
 
+            if (Gdx.input.justTouched()) {  //Interakcja, czyli jak dotkniemy ekran to ten dziad ptak leci do góry, a jak nie to spada
 //            Gdx.app.log("TOUCHED!", "YES!!"); // tak się loguje w libgdx
                 velocity = -30;
             }
@@ -75,18 +80,19 @@ public class FlappyBird extends ApplicationAdapter {
             }
         }
 
-        //rozpoczynamy rysowanie batcha
-        batch.begin();
-        batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()); // tło
 //        batch.draw(bird, Gdx.graphics.getWidth() / 2 - bird.getWidth() / 2, Gdx.graphics.getHeight() / 2 - bird.getWidth() / 2); // ptak będzie na środku ekranu. cofamy w lewo i w dół o połowę rozmiaru sprita
         batch.draw(birds[flapState], Gdx.graphics.getWidth() / 4, birdY); // ale tak jest ładniej. birdY na początku jest screen/2 ale będzie się zmieniać
         batch.end();
     }
 
-
     @Override
     public void dispose() { // tu na końcu musimy chyba zwolnić wszystkie tekstury, batche itp.
         batch.dispose();
         background.dispose();
+        topTube.dispose();
+        bottomTube.dispose();
+        for (Texture bird : birds) { // bardziej elegancka pętla for
+            bird.dispose();
+        }
     }
 }
