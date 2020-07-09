@@ -2,8 +2,11 @@ package com.mwfury.game;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
+import java.util.Random;
 
 public class FlappyBird extends ApplicationAdapter {
     SpriteBatch batch; //SpriteBatch to taki handler do zarządzania animacjami
@@ -18,6 +21,13 @@ public class FlappyBird extends ApplicationAdapter {
     int gameState = 0; //Stan gry. Na początku 0, żeby po uruchomieniu ptak był na środku i dopiero po tapnięciu zaczął się ruszać.
     float gravity = 2; //Dodatkowa zmienna zwiększająca szybkość grawitacji
     float gap = 400; //Odległość między rurami
+    float maxTubeOffset; //Maksykalne przesunięcie rury. Będziemy je rysować w losowych miejscach
+    Random randomGenerator; //Będziemy losować gap
+    float tubeVelocity = 4; //Prędkość rury. Będzie się przesuwać
+    int numberOfTubes = 4; //ilość rur generowanych na ekran
+    float[] tubeX = new float[numberOfTubes]; //Współrzędna X rur będzie się zmieniać jak rura będzie się poruszać. Bedziemy mieli 4 rury na ekranie więc tablica 4 współrzędnych X
+    float[] tubeOffset = new float[numberOfTubes]; //Przesunięcie rury. Tablica 4 offsetów bo mamy 4 rury na ekranie.
+    float distanceBetweenTubes; //Odległość pomiędzy rurami
 
     @Override
     public void create() { //taka metoda oncreate jakby
@@ -31,6 +41,16 @@ public class FlappyBird extends ApplicationAdapter {
         birds[1] = new Texture("bird2.png");
 
         birdY = Gdx.graphics.getHeight() / 2; //inicjalizujemy pozycję birdY. Na początku taka, ale będzie się zmieniać góra/dół
+
+        maxTubeOffset = Gdx.graphics.getHeight() / 2 - gap / 2 - 100; //maksymalne wychylenie rury
+        randomGenerator = new Random();
+
+        distanceBetweenTubes = Gdx.graphics.getWidth() * 3 / 4; //szerokość ekranu /2 to odległość pomiędzy kolejnymi rurami
+
+        for (int i = 0; i < numberOfTubes; i++) { // dla każdej pary rur generujemy X i offset
+            tubeOffset[i] = (randomGenerator.nextFloat() - 0.5f) * (Gdx.graphics.getHeight() - gap - 200); //Ciężko to ogarnąć... Za każdym razem gdy tapniemy, tubeoffset przyjmie losową wartość pomiędzy 0 i 1. Hadrkorowe losowanie
+            tubeX[i] = Gdx.graphics.getWidth() / 2 - topTube.getWidth() / 2 + i * distanceBetweenTubes; //współrzędne X rur dajemy na start na środek. Rysujemy kolejne rury o przesunięcie X distanceBetweenTubes.
+        }
     }
 
     @Override
@@ -41,14 +61,20 @@ public class FlappyBird extends ApplicationAdapter {
         batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()); // tło. Musi być tutaj bo potem są rury rysowane
 
         if (gameState != 0) { //Sprawdzamy stan gry. Na początku jest 0, ptak się nie rusza. Dopiero po kliknięciu w ekran jest 1;
-            batch.draw(topTube, Gdx.graphics.getWidth() / 2 - topTube.getWidth() / 2, Gdx.graphics.getHeight() / 2 + gap / 2);//Rysujemy rury. Na parametrze Y będziemy dawali przerwę gap.
-            batch.draw(bottomTube, Gdx.graphics.getWidth() / 2 - bottomTube.getWidth() / 2, Gdx.graphics.getHeight() / 2 - gap / 2 - bottomTube.getHeight());//Ogarnięte. Nie trudne. Dolna rura.
-
             if (Gdx.input.justTouched()) {  //Interakcja, czyli jak dotkniemy ekran to ten dziad ptak leci do góry, a jak nie to spada
-//            Gdx.app.log("TOUCHED!", "YES!!"); // tak się loguje w libgdx
                 if (birdY < Gdx.graphics.getHeight()) { //Ażeby jak ptak wyleci do góry poza ekran żeby nie dało się klikać
                     velocity = -30;
                 }
+            }
+
+            for (int i = 0; i < numberOfTubes; i++) {
+                if (tubeX[i] < -topTube.getWidth()) { //Jeśli rura górna (lub dolna) wyjdzie za już ekran...
+                    tubeX[i] += numberOfTubes * distanceBetweenTubes;  //Dodajemy do niej 4 połowy szerokości ekranu, bo tyle rur mamy
+                } else { //Jeśli nie, to przesuwamy
+                    tubeX[i] -= tubeVelocity; // przesuwanie rur o velocity
+                }
+                batch.draw(topTube, tubeX[i], Gdx.graphics.getHeight() / 2 + gap / 2 + tubeOffset[i]);//Rysujemy rury. Na parametrze Y będziemy dawali przerwę gap i losowy offset. Współrzędna X się rusza w lewo
+                batch.draw(bottomTube, tubeX[i], Gdx.graphics.getHeight() / 2 - gap / 2 - bottomTube.getHeight() + tubeOffset[i]);//Ogarnięte. Nie trudne. Dolna rura.
             }
 
             //Pierwszy warunek działa jeśli birdY >0, więc zatrzyma się na dole ekranu
@@ -82,7 +108,6 @@ public class FlappyBird extends ApplicationAdapter {
             }
         }
 
-//        batch.draw(bird, Gdx.graphics.getWidth() / 2 - bird.getWidth() / 2, Gdx.graphics.getHeight() / 2 - bird.getWidth() / 2); // ptak będzie na środku ekranu. cofamy w lewo i w dół o połowę rozmiaru sprita
         batch.draw(birds[flapState], Gdx.graphics.getWidth() / 4, birdY); // ale tak jest ładniej. birdY na początku jest screen/2 ale będzie się zmieniać
         batch.end();
     }
