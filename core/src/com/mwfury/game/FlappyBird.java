@@ -46,7 +46,9 @@ public class FlappyBird extends ApplicationAdapter {
 
             if (Gdx.input.justTouched()) {  //Interakcja, czyli jak dotkniemy ekran to ten dziad ptak leci do góry, a jak nie to spada
 //            Gdx.app.log("TOUCHED!", "YES!!"); // tak się loguje w libgdx
-                velocity = -30;
+                if (birdY < Gdx.graphics.getHeight()) { //Ażeby jak ptak wyleci do góry poza ekran żeby nie dało się klikać
+                    velocity = -30;
+                }
             }
 
             //Pierwszy warunek działa jeśli birdY >0, więc zatrzyma się na dole ekranu
