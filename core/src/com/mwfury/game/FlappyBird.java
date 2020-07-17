@@ -70,6 +70,7 @@ public class FlappyBird extends ApplicationAdapter {
             for (int i = 0; i < numberOfTubes; i++) {
                 if (tubeX[i] < -topTube.getWidth()) { //Jeśli rura górna (lub dolna) wyjdzie za już ekran...
                     tubeX[i] += numberOfTubes * distanceBetweenTubes;  //Dodajemy do niej 4 połowy szerokości ekranu, bo tyle rur mamy
+                    tubeOffset[i] = (randomGenerator.nextFloat() - 0.5f) * (Gdx.graphics.getHeight() - gap - 200); //generujemy nowe rury
                 } else { //Jeśli nie, to przesuwamy
                     tubeX[i] -= tubeVelocity; // przesuwanie rur o velocity
                 }
