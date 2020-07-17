@@ -4,6 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
@@ -38,6 +39,7 @@ public class FlappyBird extends ApplicationAdapter {
     ShapeRenderer shapeRenderer; //Shaperenderer... będzie nam renderował kształty na rurach i ptaku tak do sprawdzenia.
     Rectangle[] topTubeRectangles; //Do kolizji nakładamy na górne rury prostokąty.
     Rectangle[] bottomTubeRectangles; //Do kolizji nakładamy na dolne rury prostokąty.
+    BitmapFont font; //Do wyświetlania punktacji na ekranie
 
     @Override
     public void create() { //taka metoda oncreate jakby
@@ -62,6 +64,10 @@ public class FlappyBird extends ApplicationAdapter {
 
         topTubeRectangles = new Rectangle[numberOfTubes]; //inicjalizujemy prostokąty dla górnych rur.
         bottomTubeRectangles = new Rectangle[numberOfTubes]; //jw. dla dolnych.
+
+        font = new BitmapFont(); //inicjalizujemy font, który posłuży do wyświetlania punktacji
+        font.setColor(Color.WHITE); //kolorek i rozmiar
+        font.getData().setScale(10);
 
         //Tutaj też jest początkowe położenie rur
         for (int i = 0; i < numberOfTubes; i++) { // dla każdej pary rur generujemy X i offset
@@ -139,23 +145,25 @@ public class FlappyBird extends ApplicationAdapter {
             }
         }
 
+        font.draw(batch, String.valueOf(score), 100, 200);//rysujemy na dole w lewym rogu punktację
+
         batch.draw(birds[flapState], Gdx.graphics.getWidth() / 5, birdY); // ale tak jest ładniej. birdY na początku jest screen/2 ale będzie się zmieniać
         batch.end();
 
         birdCircle.set(Gdx.graphics.getWidth() / 5 + birds[flapState].getWidth() / 2, birdY + birds[flapState].getHeight() / 2, birds[flapState].getWidth() / 2.5f); //ustawiamy kółko na pozycji ptaka
 //      SHAPERENDERER SLUZY TYLKO ZEBY NARYSOWAC KSZTALTY I WYPELNIC JE DLA SPRAWDZENIA. POTEM MOZNA TO WYWALIC
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled); // coś jak batch. Wybieramy typ kształtu
-        shapeRenderer.setColor(Color.RED); //Czerwonym wypełniamy kółko żeby widzieć
-        shapeRenderer.circle(birdCircle.x, birdCircle.y, birdCircle.radius); //renderujemy shape kółka
+//        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled); // coś jak batch. Wybieramy typ kształtu
+//        shapeRenderer.setColor(Color.RED); //Czerwonym wypełniamy kółko żeby widzieć
+//        shapeRenderer.circle(birdCircle.x, birdCircle.y, birdCircle.radius); //renderujemy shape kółka
 
         for (int i = 0; i < numberOfTubes; i++) { //pętla, w której będziemy renderować rury
-            shapeRenderer.rect(tubeX[i], Gdx.graphics.getHeight() / 2 + gap / 2 + tubeOffset[i], topTube.getWidth(), topTube.getHeight());
-            shapeRenderer.rect(tubeX[i], Gdx.graphics.getHeight() / 2 - gap / 2 - bottomTube.getHeight() + tubeOffset[i], bottomTube.getWidth(), bottomTube.getHeight());
+//            shapeRenderer.rect(tubeX[i], Gdx.graphics.getHeight() / 2 + gap / 2 + tubeOffset[i], topTube.getWidth(), topTube.getHeight());
+//            shapeRenderer.rect(tubeX[i], Gdx.graphics.getHeight() / 2 - gap / 2 - bottomTube.getHeight() + tubeOffset[i], bottomTube.getWidth(), bottomTube.getHeight());
             if (Intersector.overlaps(birdCircle, topTubeRectangles[i]) || Intersector.overlaps(birdCircle, bottomTubeRectangles[i])) { //sprawdzamy kolizję
 //                Gdx.app.log("COLLISION!", "YES!!!"); //logowanie kolizji
             }
         }
-        shapeRenderer.end(); //kończymy shaperenderer
+//        shapeRenderer.end(); //kończymy shaperenderer
     }
 
     @Override
