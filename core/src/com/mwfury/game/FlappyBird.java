@@ -19,6 +19,7 @@ public class FlappyBird extends ApplicationAdapter {
     Texture[] birds; //Tablica tekstur bird, bo on macha skrzydłami
     Texture topTube; //Rura górna
     Texture bottomTube; //Rura dolna
+    Texture gameOver; //GAME OVER MAN
     int score = 0; //Punktacja
     int scoringTube = 0; //Która rura daje punkt... Wstępnie 0
     int flapState = 0; //Sprawdzanie stanu machania skrzydłami. To indeks tablicy naszych birds
@@ -41,18 +42,29 @@ public class FlappyBird extends ApplicationAdapter {
     Rectangle[] bottomTubeRectangles; //Do kolizji nakładamy na dolne rury prostokąty.
     BitmapFont font; //Do wyświetlania punktacji na ekranie
 
+    public void startGame() { //INICJALIZUJEMY POCZATKOWE POLOZENIA PTAKA I RUR. W METODZIE ZEBY NIE POWIELAC KODU POTEM
+        birdY = Gdx.graphics.getHeight() / 2; //inicjalizujemy pozycję birdY. Na początku taka, ale będzie się zmieniać góra/dół
+        //Tutaj też jest początkowe położenie rur
+        for (int i = 0; i < numberOfTubes; i++) { // dla każdej pary rur generujemy X i offset
+            tubeOffset[i] = (randomGenerator.nextFloat() - 0.5f) * (Gdx.graphics.getHeight() - gap - 200); //Ciężko to ogarnąć... Za każdym razem gdy tapniemy, tubeoffset przyjmie losową wartość pomiędzy 0 i 1. Hadrkorowe losowanie
+            tubeX[i] = Gdx.graphics.getWidth() / 2 - topTube.getWidth() / 2 + Gdx.graphics.getWidth() + i * distanceBetweenTubes; //współrzędne X rur dajemy na start na środek. Rysujemy kolejne rury o przesunięcie X distanceBetweenTubes.
+            topTubeRectangles[i] = new Rectangle(); //Tworzymy rectangle, ale jeszcze nie przypisane do kształtu rur.
+            bottomTubeRectangles[i] = new Rectangle();
+        }
+    }
+
     @Override
     public void create() { //taka metoda oncreate jakby
         batch = new SpriteBatch();
         background = new Texture("bg.png");
         topTube = new Texture("toptube.png");
         bottomTube = new Texture("bottomtube.png");
+        gameOver = new Texture("gameover.png");
 
         birds = new Texture[2]; //tablica tekstur z ptakiem bo on macha skrzydłami (bird i bird2 więc tablica 2 elementów)
         birds[0] = new Texture("bird.png");
         birds[1] = new Texture("bird2.png");
 
-        birdY = Gdx.graphics.getHeight() / 2; //inicjalizujemy pozycję birdY. Na początku taka, ale będzie się zmieniać góra/dół
 
         maxTubeOffset = Gdx.graphics.getHeight() / 2 - gap / 2 - 100; //maksymalne wychylenie rury
         randomGenerator = new Random();
@@ -68,14 +80,7 @@ public class FlappyBird extends ApplicationAdapter {
         font = new BitmapFont(); //inicjalizujemy font, który posłuży do wyświetlania punktacji
         font.setColor(Color.WHITE); //kolorek i rozmiar
         font.getData().setScale(10);
-
-        //Tutaj też jest początkowe położenie rur
-        for (int i = 0; i < numberOfTubes; i++) { // dla każdej pary rur generujemy X i offset
-            tubeOffset[i] = (randomGenerator.nextFloat() - 0.5f) * (Gdx.graphics.getHeight() - gap - 200); //Ciężko to ogarnąć... Za każdym razem gdy tapniemy, tubeoffset przyjmie losową wartość pomiędzy 0 i 1. Hadrkorowe losowanie
-            tubeX[i] = Gdx.graphics.getWidth() / 2 - topTube.getWidth() / 2 + Gdx.graphics.getWidth() + i * distanceBetweenTubes; //współrzędne X rur dajemy na start na środek. Rysujemy kolejne rury o przesunięcie X distanceBetweenTubes.
-            topTubeRectangles[i] = new Rectangle(); //Tworzymy rectangle, ale jeszcze nie przypisane do kształtu rur.
-            bottomTubeRectangles[i] = new Rectangle();
-        }
+        startGame();
     }
 
     @Override
@@ -85,7 +90,7 @@ public class FlappyBird extends ApplicationAdapter {
         batch.begin();
         batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()); // tło. Musi być tutaj bo potem są rury rysowane
 
-        if (gameState != 0) { //Sprawdzamy stan gry. Na początku jest 0, ptak się nie rusza. Dopiero po kliknięciu w ekran jest 1;
+        if (gameState == 1) { //Sprawdzamy stan gry. Na początku jest 0, ptak się nie rusza. Dopiero po kliknięciu w ekran jest 1;
             if (tubeX[scoringTube] < Gdx.graphics.getWidth() / 5) {
                 score++;
                 Gdx.app.log("PUNKTY!", "WARTOSC:  " + score);
@@ -114,22 +119,30 @@ public class FlappyBird extends ApplicationAdapter {
                 bottomTubeRectangles[i] = new Rectangle(tubeX[i], Gdx.graphics.getHeight() / 2 - gap / 2 - bottomTube.getHeight() + tubeOffset[i], bottomTube.getWidth(), bottomTube.getHeight()); //tak samo dolna
             }
 
-            //Pierwszy warunek działa jeśli birdY >0, więc zatrzyma się na dole ekranu
-            //Drugi warunek OR velocity <0 pozwala nam tapnąć ptaka do góry jak leży na ziemii bo po tapnięciu zmienia nam się velocity na -30. Jakby nie było tego wyrażenia, tylko sam birdY>0 to w ogóle by tapnięcia nie brał pod uwagę.
-            if (birdY > 0 || velocity < 0) {
+            //warunek działa jeśli birdY >0, więc zatrzyma się na dole ekranu
+            if (birdY > 0) {
                 //z każdą pętlą velocity się zwiększa. Pozycję Y zmniejszamy o to velocity więc ptak spada coraz szybciej.
 //            velocity++;
 //            birdY -= velocity;
                 //a druga metoda to ze zmienną gravity:
                 velocity = velocity + gravity;
                 birdY -= velocity;
+            } else {
+                gameState = 2; //ptak spadł, koniec gry
             }
-
-
-        } else { //Jeśli stan gry jest 0 i jeśli klikniesz zmień stan na 1
-            if (Gdx.input.justTouched()) {
+        } else if (gameState == 0) {
+            if (Gdx.input.justTouched()) { //Jeśli stan gry jest 0 i jeśli klikniesz zmień stan na 1
 //            Gdx.app.log("TOUCHED!", "YES!!"); // tak się loguje w libgdx
                 gameState = 1;
+            }
+        } else if (gameState == 2) { //jak koniec gry to rysujemy gameover.png
+            batch.draw(gameOver, Gdx.graphics.getWidth() / 2 - gameOver.getWidth() / 2, Gdx.graphics.getHeight() / 2 - gameOver.getHeight() / 2);
+            if (Gdx.input.justTouched()) { //Jeśli stan gry jest 0 i jeśli klikniesz zmień stan na 1
+                gameState = 1;
+                startGame();
+                score = 0;
+                scoringTube = 0;
+                velocity = 0;
             }
         }
 
@@ -161,6 +174,7 @@ public class FlappyBird extends ApplicationAdapter {
 //            shapeRenderer.rect(tubeX[i], Gdx.graphics.getHeight() / 2 - gap / 2 - bottomTube.getHeight() + tubeOffset[i], bottomTube.getWidth(), bottomTube.getHeight());
             if (Intersector.overlaps(birdCircle, topTubeRectangles[i]) || Intersector.overlaps(birdCircle, bottomTubeRectangles[i])) { //sprawdzamy kolizję
 //                Gdx.app.log("COLLISION!", "YES!!!"); //logowanie kolizji
+                gameState = 2; //wprowadzamy nowy gamestate
             }
         }
 //        shapeRenderer.end(); //kończymy shaperenderer
